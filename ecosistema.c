@@ -41,7 +41,7 @@ void simular_tick(int tick) {
     #pragma omp parallel for collapse(2) schedule(dynamic)
     for (int i = 0; i < GRID_SIZE; i++) {
         for (int j = 0; j < GRID_SIZE; j++) {
-            actualizar_celda(i, j);
+            actualizar_celda(i, j, tick);
         }
     }
     /* Barrera implicita: al salir del parallel for, todos los hilos

@@ -1,2 +1,6 @@
 ecosistema
 *.o
+
+# notas internas y enunciado, no van al repo
+plan_equipo.md
+*.pdf
