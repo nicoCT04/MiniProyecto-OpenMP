@@ -1,0 +1,297 @@
+Simulacion de ecosistema con OpenMP
+Cuadricula: 10x10 | Ticks: 20 | Hilos: 32
+Leyenda: P=planta  H=herbivoro  C=carnivoro  .=vacio
+
+--- Tick 0 ---
+Plantas: 34 | Herbivoros: 17 | Carnivoros: 4
+Distribucion:
+. H . H P . P H H H 
+. H P P . . . C . . 
+. . P H P . . P H . 
+H P P P P . P P P . 
+. C . H . . . H P C 
+. P P . P . . P . . 
+P . . . H C . . P P 
+P . P P . . . P . H 
+. P P P H P . H . H 
+P . . . P . P P . H 
+
+--- Tick 1 ---
+Plantas: 30 | Herbivoros: 14 | Carnivoros: 4
+Distribucion:
+. H . H . . . . . H 
+. H . P . . . C . H 
+. P P H P . P . . H 
+. . . P P . . P P . 
+. C . H . P . H P C 
+P P P . . . . P . . 
+P . . P . C . . . P 
+P . P . . . . . . H 
+. P P P H P . H . H 
+P P . . P . P P P H 
+
+--- Tick 2 ---
+Plantas: 25 | Herbivoros: 14 | Carnivoros: 4
+Distribucion:
+. H . H . . . . . H 
+. H . . . . . C . H 
+. . P H P . P . . H 
+. . . . P . . . . P 
+. C . H . P . H P C 
+P P P . P . . P . . 
+P . P P . C . . . . 
+P . P . . . P . . H 
+. P P . H P . H . H 
+P P . . P . . P . H 
+
+--- Tick 3 ---
+Plantas: 27 | Herbivoros: 14 | Carnivoros: 4
+Distribucion:
+. H . H . . . . . H 
+. H . . . P . C . H 
+. . . H P . P . . H 
+. . . . . . . . . . 
+. C P H . P . H . C 
+P P P P P P P P . . 
+P . P P . C . . . . 
+P . P . . . . . . H 
+P P P P H . . H . H 
+P P . . P P . P . H 
+
+--- Tick 4 ---
+Plantas: 28 | Herbivoros: 14 | Carnivoros: 4
+Distribucion:
+. H . H . . . . . H 
+. H . . . P . C . H 
+. . . H . . P . . H 
+. . . . . . . . . . 
+. C . H . P . H . C 
+P P P P P P . P . . 
+P P P P P C . . . . 
+P . P P . . . . . H 
+P P P . H P . H . H 
+P P P P P P . . . H 
+
+--- Tick 5 ---
+Plantas: 30 | Herbivoros: 14 | Carnivoros: 4
+Distribucion:
+. H . H . . . . . H 
+. H . . . P . C . H 
+. . . H . . P . . H 
+. . . . . . . . . . 
+P C . H . P . H . C 
+P P . P P P . . . . 
+P P P P P C . . . . 
+P P P . P P . . . H 
+P P P P H P . H . H 
+P P P P P P . . . H 
+
+--- Tick 6 ---
+Plantas: 32 | Herbivoros: 14 | Carnivoros: 4
+Distribucion:
+. H . H . . . . . H 
+. H . . . P . C . H 
+. . . H . . P . . H 
+. . . . . . . . . . 
+P C P H . P . H . C 
+P P . . P P . . . . 
+P P P P P C P . . . 
+P P P P . P P . . H 
+P P P P H P . H . H 
+P P P P P P . . . H 
+
+--- Tick 7 ---
+Plantas: 32 | Herbivoros: 14 | Carnivoros: 4
+Distribucion:
+. H . H . . . . . H 
+. H . . . P P C . H 
+. . . H . . P . . H 
+. P . . . . . . . . 
+P C . H . P . H . C 
+P P . . P P . . . . 
+P P P P P C P . . . 
+P P P . P P . . . H 
+P P P P H P . H . H 
+P P P P P P . . . H 
+
+--- Tick 8 ---
+Plantas: 32 | Herbivoros: 14 | Carnivoros: 4
+Distribucion:
+. H . H . . . . . H 
+. H . . . P P C . H 
+. . . H . . P . . H 
+. P . . . . . . . . 
+P C . H . P . H . C 
+P P . P . P . . . . 
+P P P P P C P . . . 
+P P P P . P . . . H 
+P P P P H P . H . H 
+P P P P P P . . . H 
+
+--- Tick 9 ---
+Plantas: 32 | Herbivoros: 14 | Carnivoros: 4
+Distribucion:
+. H . H . . . . . H 
+. H . . . P P C . H 
+. . . H . . P . . H 
+. P . . . . . . . . 
+P C . H . P . H . C 
+P P P . . P . . . . 
+P P P P P C P . . . 
+P P P . P P . . . H 
+P P P P H P . H . H 
+P P P P P P . . . H 
+
+--- Tick 10 ---
+Plantas: 33 | Herbivoros: 12 | Carnivoros: 4
+Distribucion:
+. H . H . . . . . . 
+. H . . . P P C . . 
+. . . H . P P . . H 
+. P . . . . . . . . 
+P C . H . P . H . C 
+P P . . . P . . . . 
+P P P P P C P . . . 
+P P P P . P . . . H 
+P P P P H P . H . H 
+P P P P P P P . . H 
+
+--- Tick 11 ---
+Plantas: 37 | Herbivoros: 9 | Carnivoros: 4
+Distribucion:
+. . . H . . . . . . 
+. H . . . P P C . . 
+. . . H . P P P . H 
+. P . . . . . . . . 
+P C . H . P . H . C 
+P P P P . P . . . . 
+P P P P P C P . . . 
+P P P . P P . P . H 
+P P P P H P P H . . 
+P P P P P P . . . . 
+
+--- Tick 12 ---
+Plantas: 40 | Herbivoros: 6 | Carnivoros: 4
+Distribucion:
+. . . . . . P . . . 
+. H . . . P P C . . 
+. . . H . P P P . . 
+. P . . . . . . P . 
+P C . H P P . H . C 
+P P . P . P . P . . 
+P P P P P C P . . . 
+P P P P . P . . . . 
+P P P P H P P H . . 
+P P P P P P P . . . 
+
+--- Tick 13 ---
+Plantas: 41 | Herbivoros: 5 | Carnivoros: 4
+Distribucion:
+. . . . . . P P . . 
+. . . . P P P C . . 
+. . . H . P P P . . 
+. P . . . . . . . . 
+P C P H . P . H . C 
+P P P P . P P P . . 
+P P P P P C P . . . 
+P P P . . P . . . . 
+P P P P H P . H . . 
+P P P P P P P . . . 
+
+--- Tick 14 ---
+Plantas: 43 | Herbivoros: 5 | Carnivoros: 4
+Distribucion:
+. . . . . P P P P . 
+. . . . . P P C . . 
+. . . H . P P P . . 
+. P . . . . P . . . 
+P C . H P P . H . C 
+P P P P . P . P . . 
+P P P P P C P P . . 
+P P P P . . . . . . 
+P P P P H P P H . . 
+P P P P P P . . . . 
+
+--- Tick 15 ---
+Plantas: 47 | Herbivoros: 4 | Carnivoros: 3
+Distribucion:
+. . . . . P P P P . 
+. . . . . P P C P . 
+. . . . . P P P P . 
+P P . . P P . . . . 
+P C P H . P . H . . 
+P P P P P P . P . . 
+P P P P P C P P . . 
+P P P . P . . . . . 
+P P P P H P . H . . 
+P P P P P P . . . . 
+
+--- Tick 16 ---
+Plantas: 50 | Herbivoros: 4 | Carnivoros: 3
+Distribucion:
+. . . . . P P P P P 
+. . . . . P P C P . 
+. P . . . P P P P . 
+P P . . . P . . . . 
+P C P H P P . H . . 
+P P P P P P P . . . 
+P P P P P C P P . . 
+P P P P . . . . . . 
+P P P P H P . H . . 
+P P P P P P P . . . 
+
+--- Tick 17 ---
+Plantas: 50 | Herbivoros: 4 | Carnivoros: 0
+Distribucion:
+. . . . P P P P P P 
+. . . . . P P . P P 
+. P . . . P P P P . 
+P P . P . P P . . . 
+P . . H P P . H . . 
+P P P P P P . . . . 
+P P P P P . P P . . 
+P P P . . . . . . . 
+P P P P H P . H . . 
+P P P P P P . . . . 
+
+--- Tick 18 ---
+Plantas: 55 | Herbivoros: 4 | Carnivoros: 0
+Distribucion:
+. . . . P P P P P P 
+. P . . P P P . P P 
+. P . . P P P P P P 
+P P . . . P . . . . 
+P P P H P P . H . . 
+P P P P P P . . . . 
+P P P P P . P P . . 
+P P P P . . P . . . 
+P P P . H P . H . . 
+P P P P P P . . . . 
+
+--- Tick 19 ---
+Plantas: 59 | Herbivoros: 4 | Carnivoros: 0
+Distribucion:
+. . . . P P P P P P 
+. P . P P P P . P P 
+. P . . P P P P P P 
+P P . . P P P . . P 
+P P . H P P . H . . 
+P P P P P P . . . . 
+P P P P P P P P . . 
+P P P . P . . . . . 
+P P P P H P . H . . 
+P P P P P P . . . . 
+
+--- Tick 20 ---
+Plantas: 64 | Herbivoros: 4 | Carnivoros: 0
+Distribucion:
+. . P . P P P P P P 
+. P . P P P P P P P 
+. P . . P P P P P P 
+P P P . . P . . P P 
+P P P H P P . H . . 
+P P P P P P . . . . 
+P P P P P P P P . . 
+P P P P . . P . . . 
+P P P P H P P H . . 
+P P P P P P . . . . 
