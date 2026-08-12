@@ -1,8 +1,16 @@
 #ifndef ECOSISTEMA_H
 #define ECOSISTEMA_H
 
+/* Valores del enunciado. Se dejan sobreescribibles con -DGRID_SIZE=... para
+ * el benchmark de eficiencia: con 100 celdas el costo de crear los hilos
+ * domina y no se puede medir speedup. La logica no cambia, solo el tamano. */
+#ifndef GRID_SIZE
 #define GRID_SIZE 10
+#endif
+
+#ifndef TICKS
 #define TICKS 20
+#endif
 
 typedef enum { VACIO, PLANTA, HERBIVORO, CARNIVORO } TipoEspecie;
 

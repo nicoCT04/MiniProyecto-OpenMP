@@ -1,4 +1,5 @@
 ecosistema
+ecosistema_bench
 *.o
 
 # notas internas y enunciado, no van al repo

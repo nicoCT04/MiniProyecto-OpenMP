@@ -37,8 +37,16 @@ void inicializar_ecosistema(void) {
 
 void simular_tick(int tick) {
     /* schedule(dynamic) porque el trabajo por celda no es uniforme:
-     * una celda vacia es barata, una con carnivoro cazando es cara. */
+     * una celda vacia es barata, una con carnivoro cazando es cara.
+     *
+     * Compilando con -DPLANIFICACION_RUNTIME se cambia a schedule(runtime),
+     * que toma la planificacion de la variable OMP_SCHEDULE: asi el benchmark
+     * compara static/dynamic/guided sin recompilar ni tocar esta linea. */
+#ifdef PLANIFICACION_RUNTIME
+    #pragma omp parallel for collapse(2) schedule(runtime)
+#else
     #pragma omp parallel for collapse(2) schedule(dynamic)
+#endif
     for (int i = 0; i < GRID_SIZE; i++) {
         for (int j = 0; j < GRID_SIZE; j++) {
             actualizar_celda(i, j, tick);
