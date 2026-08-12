@@ -5,9 +5,58 @@ cuadrícula de 10x10 durante 20 ticks, paralelizada con OpenMP.
 
 ---
 
-## 1. Diseño del sistema
+## 1. Estrategia de paralelización
 
-### 1.1 Cuadrícula de doble buffer
+### 1.1 Qué se paraleliza y qué no
+
+La simulación tiene dos bucles anidados: uno **temporal** (los 20 ticks) y uno
+**espacial** (las 100 celdas de cada tick). Solo se paralelizó el segundo.
+
+| Parte | ¿Paralela? | Por qué |
+|---|---|---|
+| Recorrido de las celdas de un tick ([ecosistema.c:48](ecosistema.c#L48)) | **Sí** | Las celdas de un mismo tick son independientes: todas leen el mismo estado congelado y ninguna necesita el resultado de otra |
+| Bucle de ticks ([main.c:17](main.c#L17)) | No | Dependencia real: el tick N+1 necesita el estado **completo** del tick N. Es intrínsecamente secuencial, no hay forma de romperlo |
+| Inicialización ([ecosistema.c:14](ecosistema.c#L14)) | No | Usa `rand()` secuencial con `srand(42)` para garantizar la misma condición inicial. Corre una sola vez sobre 100 celdas: paralelizarlo no ahorraría nada y rompería la reproducibilidad |
+| `memcpy` y `mostrar_estado` | No | Son el cierre del tick; corren después de la barrera, con un solo hilo |
+
+La granularidad elegida es **una celda por unidad de trabajo**. Es la más fina
+posible, y `collapse(2)` es lo que permite usarla: sin él, el reparto se haría
+sobre las 10 filas del bucle externo y con más de 10 hilos algunos quedarían sin
+trabajo.
+
+El esquema resultante es **fork-join por tick**: se abre una región paralela, se
+reparten las celdas, se cierra con la barrera implícita, y recién ahí se hace el
+cambio de buffer. Veinte ticks son veinte regiones paralelas.
+
+### 1.2 Primero eliminar las carreras, después sincronizar
+
+La decisión de fondo fue **no resolver las condiciones de carrera con directivas,
+sino evitar que existan**. Las directivas de sincronización se reservaron para lo
+que quedó sin resolver por diseño:
+
+| Problema | Cómo se resolvió | Costo |
+|---|---|---|
+| Un hilo lee una celda que otro está modificando | **Doble buffer**: nadie escribe en `grid_actual` durante el tick | Ninguno (memoria extra) |
+| Dos hilos usan el generador de aleatorios a la vez | **Semilla propia por celda** con `rand_r`, en vez de compartir `rand()` | Ninguno |
+| Depredador y presa tienen que coincidir en quién come a quién | **Regla determinista evaluada por ambos lados**, en vez de que un hilo le escriba al otro | Ninguno |
+| Dos hilos escriben en la misma celda vecina | `critical (escritura_vecina)` | Serializa |
+| Dos hilos incrementan el mismo contador | `atomic` | Una instrucción atómica |
+
+Los tres primeros son la mayor parte del problema y se resolvieron **sin ninguna
+directiva**, solo con la estructura de datos y las reglas. Por eso el código tiene
+tan poca sincronización: dos regiones `critical` —que además comparten el mismo
+candado— y tres `atomic` en toda la simulación.
+
+Las dos filas de abajo son las que sí necesitaron directivas, y son las que
+después aparecen como el límite de escalabilidad: el `critical` es un candado
+global único, y es la parte serial que le pone techo al speedup (ver §6.3). El
+detalle de cada directiva está en §4, y el porqué de cada decisión de diseño en §3.
+
+---
+
+## 2. Diseño del sistema
+
+### 2.1 Cuadrícula de doble buffer
 
 La estructura central son dos matrices del mismo tamaño (`ecosistema.h`):
 
@@ -35,7 +84,7 @@ typedef struct {
 } Celda;
 ```
 
-### 1.2 Vecindad
+### 2.2 Vecindad
 
 Se usa vecindad de Moore (los 8 vecinos, incluidas las diagonales), recorrida con
 las tablas `DI`/`DJ` de [especies.c:33-34](especies.c#L33-L34). Los bordes se
@@ -44,9 +93,9 @@ envuelve hacia el otro lado.
 
 ---
 
-## 2. Decisiones de diseño
+## 3. Decisiones de diseño
 
-### 2.1 Un solo algoritmo para herbívoros y carnívoros
+### 3.1 Un solo algoritmo para herbívoros y carnívoros
 
 Herbívoro y carnívoro hacen exactamente lo mismo: buscar su presa, comerla,
 gastar energía, reproducirse si les alcanza. Lo único que cambia es *qué* comen y
@@ -63,7 +112,7 @@ static const RasgosEspecie RASGOS[] = {
 `actualizar_animal` sirve para los dos. Agregar un omnívoro sería una fila más,
 no una función más.
 
-### 2.2 Hambre y vejez sobre un solo campo
+### 3.2 Hambre y vejez sobre un solo campo
 
 El enunciado pide que un animal muera si no come en 3 ticks, y también por vejez.
 En vez de agregar contadores separados a `Celda`, ambas cosas se modelan sobre
@@ -71,7 +120,7 @@ En vez de agregar contadores separados a `Celda`, ambas cosas se modelan sobre
 energía cubre los dos casos con una sola comparación, y la energía inicial fija
 cuánto se aguanta sin comer.
 
-### 2.3 Reproducibilidad: `rand_r` con semilla por celda
+### 3.3 Reproducibilidad: `rand_r` con semilla por celda
 
 `rand()` no es *thread-safe* y, aunque lo fuera, el orden en que los hilos lo
 llaman cambia de corrida en corrida: dos ejecuciones con distinto número de hilos
@@ -91,7 +140,7 @@ va, el reparto de hilos no la afecta.
 completa es idéntica byte a byte en los tres casos (Tick 20 = 64 plantas,
 4 herbívoros, 0 carnívoros).
 
-### 2.4 Competencia por recursos
+### 3.4 Competencia por recursos
 
 Dos animales vecinos pueden querer moverse o reproducirse hacia la misma celda
 vacía. La regla es **gana el primero que llega**: el segundo encuentra la celda
@@ -100,7 +149,7 @@ consistencia — la celda queda con un solo ocupante — pero *cuál* de los dos
 depende del orden de los hilos. Esto no rompe la reproducibilidad observada
 porque el resto de las decisiones sí es determinista.
 
-### 2.5 Depredador y presa sin comunicarse
+### 3.5 Depredador y presa sin comunicarse
 
 Cuando un carnívoro se come a un herbívoro hay que hacer dos cosas: subirle la
 energía al carnívoro y borrar al herbívoro. Pero cada celda la procesa un hilo
@@ -116,7 +165,7 @@ elección de celda vacía para moverse sí lo usa.
 
 ---
 
-## 3. Mapa de OpenMP
+## 4. Mapa de OpenMP
 
 | Directiva | Dónde | Qué hace |
 |---|---|---|
@@ -156,7 +205,7 @@ agregar un `critical` solo costaría tiempo.
 
 ---
 
-## 4. Análisis de resultados
+## 5. Análisis de resultados
 
 Población por tick (de `resultados.txt`, semilla fija `srand(42)`):
 
@@ -197,7 +246,7 @@ en vez de una extinción temprana.
 
 ---
 
-## 5. Análisis de eficiencia
+## 6. Análisis de eficiencia
 
 Medido en un Intel Core i9-13980HX (24 núcleos: 8 de rendimiento y 16 de
 eficiencia, 32 hilos), GCC 16.1.1 con `-O2`, mejor de 3 corridas.
@@ -207,7 +256,7 @@ Como la cuadrícula del enunciado es de 100 celdas, se compiló un binario apart
 repartir. La lógica es idéntica; solo cambian dos constantes. La salida se apaga
 con `ECO_SILENCIOSO=1`, porque si no se estaría cronometrando la consola.
 
-### 5.1 Tiempos (s) y speedup
+### 6.1 Tiempos (s) y speedup
 
 | Hilos | static | dynamic | guided |
 |---|---|---|---|
@@ -226,7 +275,7 @@ El resultado es claro y no es el que esperábamos: **el speedup máximo es 1.41x
 con 2 hilos, y a partir de ahí empeora.** Con 8 hilos ya no hay ganancia, y con
 `dynamic` la simulación llega a tardar **el doble** que en secuencial.
 
-### 5.2 Por qué `dynamic` sale último
+### 6.2 Por qué `dynamic` sale último
 
 `schedule(dynamic)` se eligió por una razón razonable: el trabajo por celda es
 desigual (una celda vacía es barata, un carnívoro cazando es caro). Pero el
@@ -250,7 +299,7 @@ práctica es que el desbalance entre celdas es real pero pequeño (todas hacen a
 sumo un recorrido de 8 vecinos), así que no compensa un reparto tan fino;
 `static`, que reparte una sola vez y sin sincronización, gana.
 
-### 5.3 Por qué se estanca en 8 hilos
+### 6.3 Por qué se estanca en 8 hilos
 
 Aun con el mejor schedule, pasar de 2 a 8 hilos no mejora. Hay dos causas:
 
@@ -265,7 +314,7 @@ Aun con el mejor schedule, pasar de 2 a 8 hilos no mejora. Hay dos causas:
   por dato. A partir de unos pocos hilos el cuello de botella es el ancho de banda
   de memoria, no el cálculo.
 
-### 5.4 La cuadrícula del enunciado
+### 6.4 La cuadrícula del enunciado
 
 Con el tamaño original (10x10, 20 ticks), paralelizar es contraproducente:
 
@@ -278,7 +327,7 @@ microsegundos y crear y sincronizar los hilos cuesta más que la simulación
 entera. Es el caso de libro en que el problema es demasiado chico para
 paralelizarlo.
 
-### 5.5 Qué haría falta para que escale
+### 6.5 Qué haría falta para que escale
 
 Sin cambiar la lógica del modelo:
 
@@ -300,7 +349,7 @@ diseño original del equipo; el binario de medición permite cambiarla con
 
 ---
 
-## 6. Conclusiones
+## 7. Conclusiones
 
 - El **doble buffer** es lo que hace correcta la paralelización: al separar
   lectura de escritura, el orden de los hilos deja de importar.
